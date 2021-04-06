@@ -39,25 +39,40 @@ export default function Post() {
   </>
 }
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = async ({ params }) => {
+  const {slug } = params
+
   const prismic = getPrismicClient();
-  const posts = await prismic.query([
-    Prismic.predicates.at('document.type', 'post')
-  ], {
-    fetch: ['post.title', 'post.content']
-  });
+  const response = await prismic.getByUID('posts', String(slug), {})
 
-  // TODO
-};
+  response.first_publication_date = format(
+    new Date(response.first_publication_date),
+    'dd MMM yyyy',
+  ).toLowerCase()
 
-export const getStaticProps = async context => {
-  const prismic = getPrismicClient();
-  const response = await prismic.getByUID('post', String(slug), {});
-
-  const post = {
-    slug,
-    title: RichText.asText(response.data.title),
-    content: RichText.asHtml(response.data.content),
-    updatedAt: 
+  return {
+    props: {
+      post: response
+    }
   }
+
+  // const posts = await prismic.query([
+  //   Prismic.predicates.at('document.type', 'post')
+  // ], {
+  //   fetch: ['post.title', 'post.content']
+  // });
+
+  
 };
+
+// export const getStaticProps = async context => {
+//   const prismic = getPrismicClient();
+//   const response = await prismic.getByUID('post', String(slug), {});
+
+//   const post = {
+//     slug,
+//     title: RichText.asText(response.data.title),
+//     content: RichText.asHtml(response.data.content),
+//     updatedAt: 
+//   }
+// };
