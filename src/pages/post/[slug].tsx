@@ -55,10 +55,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
   posts.results?.map(post =>
     paths.push({
       params: {
-        slug: post.uid
+        slug: post.uid,
       },
     })
-  )
+  );
 
   return {
     paths,
@@ -67,7 +67,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const { slug } = params
+  const { slug } = params;
 
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('post', String(slug), {});
@@ -89,5 +89,5 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: {
       post,
     },
-  }
-}
+  };
+};
