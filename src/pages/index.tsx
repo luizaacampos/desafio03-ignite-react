@@ -42,14 +42,16 @@ export default function Home({ postsPagination }: HomeProps) {
       <main className={commonStyles.container}>
         <div className={styles.posts}>
           {posts.map(post => (
-            <a key={post.uid} href={`/${post.uid}`}>
-              <strong>{post.data.title}</strong>
-              <p>{post.data.subtitle}</p>
-              <AiOutlineCalendar />
-              <time>{post.first_publication_date}</time>
-              <BsPerson />
-              <span>{post.data.author}</span>
-            </a>
+            <Link href={`/post/${post.uid}`}>
+              <a key={post.uid}>
+                <strong>{post.data.title}</strong>
+                <p>{post.data.subtitle}</p>
+                <AiOutlineCalendar />
+                <time>{post.first_publication_date}</time>
+                <BsPerson />
+                <span>{post.data.author}</span>
+              </a>
+            </Link>
           ))}
           <button type="button">Carregar mais posts</button>
         </div>
