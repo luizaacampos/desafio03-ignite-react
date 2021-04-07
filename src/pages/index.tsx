@@ -4,6 +4,10 @@ import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { RichText } from 'prismic-dom';
+import { AiOutlineCalendar } from 'react-icons/ai';
+import { BsPerson } from 'react-icons/bs';
+
+import { useState } from 'react';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -30,23 +34,23 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
+  const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+
   return (
     <>
       <Header />
-      <main>
-        <div>
-          {response.map(post => {
-            return (
-              <Link href={`/posts/${post.uid}`}>
-              <a key={post.uid}>
-                <strong>{post.data.title}</strong>
-                <p>{post.data.subtitle}</p>
-                <time>{post.first_publication_date}</time>
-                <span>{post.data.author}</span>
-              </a>
-            </Link>
-            )
-          })}
+      <main className={commonStyles.container}>
+        <div className={styles.posts}>
+          {posts.map(post => (
+            <a key={post.uid} href={`/${post.uid}`}>
+              <strong>{post.data.title}</strong>
+              <p>{post.data.subtitle}</p>
+              <AiOutlineCalendar />
+              <time>{post.first_publication_date}</time>
+              <BsPerson />
+              <span>{post.data.author}</span>
+            </a>
+          ))}
           <button type="button">Carregar mais posts</button>
         </div>
       </main>
@@ -57,33 +61,37 @@ export default function Home({ postsPagination }: HomeProps) {
 export const getStaticProps: GetStaticProps = async () => {
   const prismic = getPrismicClient();
 
-  const postResponse = await prismic.query([
-    Prismic.predicates.at('document.type', 'posts')
-  ],{
-    fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-    pageSize: 4
-  })
+  const postResponse = await prismic.query(
+    [Prismic.predicates.at('document.type', 'posts')],
+    {
+      fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
+      pageSize: 4,
+    }
+  );
 
   const posts = postResponse.results.map((post: Post) => {
     return {
       uid: post.uid,
-      first_publication_date: format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-        locale: ptBR
-      }),
-        data: {
-          title: post.data.title,
-          subtitle: post.data.subtitle,
-          author: post.data.author,
+      first_publication_date: format(
+        new Date(post.first_publication_date),
+        'dd MMM yyyy',
+        {
+          locale: ptBR,
         }
-    }
-  })
-  console.log(posts)
-  
+      ),
+      data: {
+        title: RichText.asText(post.data.title),
+        subtitle: RichText.asText(post.data.subtitle),
+        author: RichText.asText(post.data.author),
+      },
+    };
+  });
+
   return {
     props: {
-      response: posts
-    }
-  }
-}
-
-
+      postsPagination: {
+        results: posts,
+      },
+    },
+  };
+};
