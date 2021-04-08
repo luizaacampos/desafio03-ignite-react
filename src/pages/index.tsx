@@ -35,16 +35,17 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
-  const [newPosts, setNewPosts] = useState([]);
+  const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
-  function handleLoadMore() {
-    fetch(postsPagination.next_page)
-      .then(response => response.json())
-      .then(response => setNewPosts(response.results));
+  async function handleLoadMore(): Promise<void> {
+    if (postsPagination.next_page === null) {
+      return;
+    }
+    const newPosts = await fetch(nextPage).then(response => response.json());
 
-    console.log(newPosts);
+    setNextPage(newPosts.next_page);
 
-    const morePosts: Post[] = newPosts.map(post => {
+    const morePosts: Post[] = newPosts.results.map(post => {
       return {
         uid: post.uid,
         first_publication_date: format(
@@ -62,9 +63,7 @@ export default function Home({ postsPagination }: HomeProps) {
       };
     });
 
-    // console.log(morePosts);
-
-    // setPosts();
+    setPosts([...posts, ...morePosts]);
   }
 
   return (
@@ -74,17 +73,17 @@ export default function Home({ postsPagination }: HomeProps) {
         <div className={styles.posts}>
           {posts.map(post => (
             <Link href={`/post/${post.uid}`}>
-              <a key={post.uid}>
-                <strong>{post.data.title}</strong>
-                <p>{post.data.subtitle}</p>
+              <a key={post?.uid}>
+                <strong>{post?.data?.title}</strong>
+                <p>{post?.data?.subtitle}</p>
                 <AiOutlineCalendar />
-                <time>{post.first_publication_date}</time>
+                <time>{post?.first_publication_date}</time>
                 <BsPerson />
-                <span>{post.data.author}</span>
+                <span>{post?.data?.author}</span>
               </a>
             </Link>
           ))}
-          {postsPagination.next_page && (
+          {nextPage && (
             <button type="button" onClick={handleLoadMore}>
               Carregar mais posts
             </button>
@@ -102,7 +101,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 2,
+      pageSize: 3,
       page: 1,
     }
   );
