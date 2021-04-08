@@ -35,6 +35,37 @@ interface HomeProps {
 
 export default function Home({ postsPagination }: HomeProps) {
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
+  const [newPosts, setNewPosts] = useState([]);
+
+  function handleLoadMore() {
+    fetch(postsPagination.next_page)
+      .then(response => response.json())
+      .then(response => setNewPosts(response.results));
+
+    console.log(newPosts);
+
+    const morePosts: Post[] = newPosts.map(post => {
+      return {
+        uid: post.uid,
+        first_publication_date: format(
+          new Date(post.first_publication_date),
+          'dd MMM yyyy',
+          {
+            locale: ptBR,
+          }
+        ),
+        data: {
+          title: RichText.asText(post.data.title),
+          subtitle: RichText.asText(post.data.subtitle),
+          author: RichText.asText(post.data.author),
+        },
+      };
+    });
+
+    // console.log(morePosts);
+
+    // setPosts();
+  }
 
   return (
     <>
@@ -53,7 +84,11 @@ export default function Home({ postsPagination }: HomeProps) {
               </a>
             </Link>
           ))}
-          <button type="button">Carregar mais posts</button>
+          {postsPagination.next_page && (
+            <button type="button" onClick={handleLoadMore}>
+              Carregar mais posts
+            </button>
+          )}
         </div>
       </main>
     </>
@@ -67,7 +102,8 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 4,
+      pageSize: 2,
+      page: 1,
     }
   );
 
@@ -89,10 +125,13 @@ export const getStaticProps: GetStaticProps = async () => {
     };
   });
 
+  const nextPage = postResponse.next_page;
+
   return {
     props: {
       postsPagination: {
         results: posts,
+        next_page: nextPage,
       },
     },
   };
