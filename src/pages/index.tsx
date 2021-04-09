@@ -1,4 +1,5 @@
 import { GetStaticProps } from 'next';
+import Head from 'next/head';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
@@ -68,9 +69,12 @@ export default function Home({ postsPagination }: HomeProps) {
 
   return (
     <>
+      <Head>
+        <title>Home | spacetraveling</title>
+      </Head>
       <Header />
       <main className={commonStyles.container}>
-        <div className={styles.posts}>
+        <div className={`${styles.posts} ${commonStyles.postsContainer}`}>
           {posts.map(post => (
             <Link href={`/post/${post.uid}`}>
               <a key={post?.uid}>

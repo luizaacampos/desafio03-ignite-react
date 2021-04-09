@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable prettier/prettier */
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 
 export default class MyDocument extends Document {
-  render(): JSX.Element {
+  render() {
     return (
       <Html>
         <Head>
