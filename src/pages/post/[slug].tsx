@@ -1,11 +1,14 @@
 import Head from 'next/head';
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
 import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { BsPerson } from 'react-icons/bs';
+import { FiClock } from 'react-icons/fi';
+
 import { getPrismicClient } from '../../services/prismic';
 import Header from '../../components/Header';
 
@@ -34,6 +37,18 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
+  const router = useRouter()
+
+  if (router.isFallback) {
+    return <div>Carregando...</div>
+  }
+
+  const readingTime = post?.data.content.reduce((acc, content) => {
+    const text = `${content.heading} ${RichText.asText(content.body)}`;
+
+    return Math.ceil(text.split(' ').length / 200);
+  }, 0);
+
   return (
     <>
       <Head>
@@ -44,10 +59,12 @@ export default function Post({ post }: PostProps): JSX.Element {
       <div className={commonStyles.container}>
         <article className={`${styles.post} ${commonStyles.postsContainer}`}>
           <h1>{post.data.title}</h1>
-          <AiOutlineCalendar />
+          <AiOutlineCalendar size="1.5rem" />
           <time>{post.first_publication_date}</time>
-          <BsPerson />
+          <BsPerson size="1.5rem" />
           <span>{post.data.author}</span>
+          <FiClock size="1.5rem" />
+          <span>{readingTime} min</span>
           <div className={styles.content}>
             {post.data.content.map(({ heading, body }) => (
               <div key={heading}>
@@ -55,7 +72,7 @@ export default function Post({ post }: PostProps): JSX.Element {
                 <div
                   dangerouslySetInnerHTML={{ __html: RichText.asHtml(body) }}
                 />
-              </div>  
+              </div>
             ))}
           </div>
         </article>
@@ -106,9 +123,18 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     },
   };
 
+  // const readingTime = response.data.content.reduce((total, content) => {
+  //   let counter = 0
+  //   content.map(word => {
+  //     counter += RichText.asText([word]).split('').length
+  //   })
+  //   return total + counter
+  // }, 0)
+
   return {
     props: {
       post,
+      // readingTime: Math.round(readingTime / 200)
     },
     revalidate: 60 * 30, // 30 minutos
   };
