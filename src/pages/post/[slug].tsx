@@ -5,6 +5,7 @@ import Prismic from '@prismicio/client';
 import { RichText } from 'prismic-dom';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+import { IconContext } from 'react-icons';
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { BsPerson } from 'react-icons/bs';
 import { FiClock } from 'react-icons/fi';
@@ -37,46 +38,64 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps): JSX.Element {
-  const router = useRouter()
+  const router = useRouter();
 
   if (router.isFallback) {
-    return <div>Carregando...</div>
+    return <div>Carregando...</div>;
   }
 
-  const readingTime = post?.data.content.reduce((acc, content) => {
-    const text = `${content.heading} ${RichText.asText(content.body)}`;
+  const headingWords = post.data.content.reduce((acc, words) => {
+    if (words.heading) {
+      return [...acc, ...words.heading.split(' ')];
+    }
+  }, []);
 
-    return Math.ceil(text.split(' ').length / 200);
-  }, 0);
+  const bodyWords = RichText.asText(
+    post.data.content.reduce((acc, words) => [...acc, ...words.body], [])
+  ).split(' ').length;
+
+  const readingTime = Math.ceil((bodyWords + headingWords.length) / 200);
 
   return (
     <>
-      <Head>
-        <title>{post.data.title} | spacetraveling</title>
-      </Head>
-      <Header />
-      <img className={styles.banner} src={post.data.banner.url} alt="banner" />
-      <div className={commonStyles.container}>
-        <article className={`${styles.post} ${commonStyles.postsContainer}`}>
-          <h1>{post.data.title}</h1>
-          <AiOutlineCalendar size="1.5rem" />
-          <time>{post.first_publication_date}</time>
-          <BsPerson size="1.5rem" />
-          <span>{post.data.author}</span>
-          <FiClock size="1.5rem" />
-          <span>{readingTime} min</span>
-          <div className={styles.content}>
-            {post.data.content.map(({ heading, body }) => (
-              <div key={heading}>
-                <h3>{heading}</h3>
-                <div
-                  dangerouslySetInnerHTML={{ __html: RichText.asHtml(body) }}
-                />
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
+      <IconContext.Provider value={{ style: { verticalAlign: 'middle' } }}>
+        <Head>
+          <title>{post.data.title} | spacetraveling</title>
+        </Head>
+        <Header />
+        <img
+          className={styles.banner}
+          src={post.data.banner.url}
+          alt="banner"
+        />
+        <div className={commonStyles.container}>
+          <article className={`${styles.post} ${commonStyles.postsContainer}`}>
+            <h1>{post.data.title}</h1>
+            <div className={styles.info}>
+              <AiOutlineCalendar size="1.25rem" />
+              <time>
+                {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
+                  locale: ptBR,
+                })}
+              </time>
+              <BsPerson size="1.25rem" />
+              <span>{post.data.author}</span>
+              <FiClock size="1.25rem" />
+              <span>{readingTime} min</span>
+            </div>
+            <div className={styles.content}>
+              {post.data.content.map(({ heading, body }) => (
+                <div key={heading}>
+                  <h3>{heading}</h3>
+                  <div
+                    dangerouslySetInnerHTML={{ __html: RichText.asHtml(body) }}
+                  />
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      </IconContext.Provider>
     </>
   );
 }
@@ -108,33 +127,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const response = await prismic.getByUID('posts', String(slug), {});
 
   const post = {
-    first_publication_date: format(
-      new Date(response.first_publication_date),
-      'dd MMM yyyy',
-      {
-        locale: ptBR,
-      }
-    ),
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
     data: {
       title: RichText.asText(response.data.title),
+      subtitle: RichText.asText(response.data.subtitle),
       banner: response.data.banner,
       author: RichText.asText(response.data.author),
       content: response.data.content,
     },
   };
 
-  // const readingTime = response.data.content.reduce((total, content) => {
-  //   let counter = 0
-  //   content.map(word => {
-  //     counter += RichText.asText([word]).split('').length
-  //   })
-  //   return total + counter
-  // }, 0)
-
   return {
     props: {
       post,
-      // readingTime: Math.round(readingTime / 200)
     },
     revalidate: 60 * 30, // 30 minutos
   };
