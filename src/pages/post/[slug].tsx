@@ -56,6 +56,14 @@ export default function Post({ post }: PostProps): JSX.Element {
 
   const readingTime = Math.ceil((bodyWords + headingWords.length) / 200);
 
+  const formattedDate = format(
+    new Date(post.first_publication_date),
+    'dd MMM yyyy',
+    {
+      locale: ptBR,
+    }
+  );
+
   return (
     <>
       <IconContext.Provider value={{ style: { verticalAlign: 'middle' } }}>
@@ -73,11 +81,7 @@ export default function Post({ post }: PostProps): JSX.Element {
             <h1>{post.data.title}</h1>
             <div className={styles.info}>
               <AiOutlineCalendar size="1.25rem" />
-              <time>
-                {format(new Date(post.first_publication_date), 'dd MMM yyyy', {
-                  locale: ptBR,
-                })}
-              </time>
+              <time>{formattedDate}</time>
               <BsPerson size="1.25rem" />
               <span>{post.data.author}</span>
               <FiClock size="1.25rem" />
@@ -132,9 +136,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     data: {
       title: RichText.asText(response.data.title),
       subtitle: RichText.asText(response.data.subtitle),
-      banner: response.data.banner,
+      banner: {
+        url: response.data.banner.url,
+      },
       author: RichText.asText(response.data.author),
-      content: response.data.content,
+      content: response.data.content.map(content => {
+        return {
+          heading: content.heading,
+          body: [...content.body],
+        };
+      }),
     },
   };
 
