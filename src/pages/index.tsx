@@ -9,6 +9,7 @@ import { AiOutlineCalendar } from 'react-icons/ai';
 import { BsPerson } from 'react-icons/bs';
 
 import { useState } from 'react';
+import { IconContext } from 'react-icons/lib';
 import { getPrismicClient } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
@@ -69,31 +70,33 @@ export default function Home({ postsPagination }: HomeProps) {
 
   return (
     <>
-      <Head>
-        <title>Home | spacetraveling</title>
-      </Head>
-      <Header />
-      <main className={commonStyles.container}>
-        <div className={`${styles.posts} ${commonStyles.postsContainer}`}>
-          {posts.map(post => (
-            <Link href={`/post/${post.uid}`}>
-              <a key={post?.uid}>
-                <strong>{post?.data?.title}</strong>
-                <p>{post?.data?.subtitle}</p>
-                <AiOutlineCalendar />
-                <time>{post?.first_publication_date}</time>
-                <BsPerson />
-                <span>{post?.data?.author}</span>
-              </a>
-            </Link>
-          ))}
-          {nextPage && (
-            <button type="button" onClick={handleLoadMore}>
-              Carregar mais posts
-            </button>
-          )}
-        </div>
-      </main>
+      <IconContext.Provider value={{ style: { verticalAlign: 'middle' } }}>
+        <Head>
+          <title>Home | spacetraveling</title>
+        </Head>
+        <Header />
+        <main className={commonStyles.container}>
+          <div className={`${styles.posts} ${commonStyles.postsContainer}`}>
+            {posts.map(post => (
+              <Link href={`/post/${post.uid}`}>
+                <a key={post?.uid}>
+                  <strong>{post?.data?.title}</strong>
+                  <p>{post?.data?.subtitle}</p>
+                  <AiOutlineCalendar size="1.5rem" />
+                  <time>{post?.first_publication_date}</time>
+                  <BsPerson size="1.5rem" />
+                  <span>{post?.data?.author}</span>
+                </a>
+              </Link>
+            ))}
+            {nextPage && (
+              <button type="button" onClick={handleLoadMore}>
+                Carregar mais posts
+              </button>
+            )}
+          </div>
+        </main>
+      </IconContext.Provider>
     </>
   );
 }
