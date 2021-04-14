@@ -50,17 +50,11 @@ export default function Home({ postsPagination }: HomeProps) {
     const morePosts: Post[] = newPosts.results.map(post => {
       return {
         uid: post.uid,
-        first_publication_date: format(
-          new Date(post.first_publication_date),
-          'dd MMM yyyy',
-          {
-            locale: ptBR,
-          }
-        ),
+        first_publication_date: post.first_publication_date,
         data: {
-          title: RichText.asText(post.data.title),
-          subtitle: RichText.asText(post.data.subtitle),
-          author: RichText.asText(post.data.author),
+          title: post.data.title,
+          subtitle: post.data.subtitle,
+          author: post.data.author,
         },
       };
     });
@@ -83,7 +77,15 @@ export default function Home({ postsPagination }: HomeProps) {
                   <strong>{post?.data?.title}</strong>
                   <p>{post?.data?.subtitle}</p>
                   <AiOutlineCalendar size="1.5rem" />
-                  <time>{post?.first_publication_date}</time>
+                  <time>
+                    {format(
+                      new Date(post.first_publication_date),
+                      'dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
+                  </time>
                   <BsPerson size="1.5rem" />
                   <span>{post?.data?.author}</span>
                 </a>
@@ -108,7 +110,7 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'posts')],
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
-      pageSize: 3,
+      pageSize: 1,
       page: 1,
     }
   );
@@ -116,17 +118,11 @@ export const getStaticProps: GetStaticProps = async () => {
   const posts = postResponse.results.map((post: Post) => {
     return {
       uid: post.uid,
-      first_publication_date: format(
-        new Date(post.first_publication_date),
-        'dd MMM yyyy',
-        {
-          locale: ptBR,
-        }
-      ),
+      first_publication_date: post.first_publication_date,
       data: {
-        title: RichText.asText(post.data.title),
-        subtitle: RichText.asText(post.data.subtitle),
-        author: RichText.asText(post.data.author),
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        author: post.data.author,
       },
     };
   });
