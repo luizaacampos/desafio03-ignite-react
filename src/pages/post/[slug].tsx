@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Head from 'next/head';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
@@ -43,6 +44,18 @@ export default function Post({ post }: PostProps): JSX.Element {
   if (router.isFallback) {
     return <div>Carregando...</div>;
   }
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    const anchor = document.getElementById('inject-comments-for-uterances');
+    script.setAttribute('src', 'https://utteranc.es/client.js');
+    script.setAttribute('crossorigin', 'anonymous');
+    script.setAttribute('async', true);
+    script.setAttribute('repo', 'luizaacampos/spacetraveling-desafioIgnite');
+    script.setAttribute('issue-term', 'pathname');
+    script.setAttribute('theme', 'github-light');
+    anchor.appendChild(script);
+  }, []);
 
   const headingWords = post.data.content.reduce((acc, words) => {
     if (words.heading) {
@@ -99,6 +112,7 @@ export default function Post({ post }: PostProps): JSX.Element {
             </div>
           </article>
         </div>
+        <div id="inject-comments-for-uterances" />
       </IconContext.Provider>
     </>
   );
