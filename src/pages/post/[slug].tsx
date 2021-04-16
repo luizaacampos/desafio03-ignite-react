@@ -1,25 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
-import Prismic from '@prismicio/client';
-import { RichText } from 'prismic-dom';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
+
 import { IconContext } from 'react-icons';
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { BsPerson } from 'react-icons/bs';
 import { FiClock } from 'react-icons/fi';
 
+import Prismic from '@prismicio/client';
+import { RichText } from 'prismic-dom';
 import { getPrismicClient } from '../../services/prismic';
-import Header from '../../components/Header';
 
+import Header from '../../components/Header';
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 import { ExitPreviewBtn } from '../../components/ExitPreviewBtn';
 
 interface Post {
   first_publication_date: string | null;
+  last_publication_date: string | null;
   data: {
     title: string;
     banner: {
@@ -41,6 +43,9 @@ interface PostProps {
 }
 
 export default function Post({ post, preview }: PostProps): JSX.Element {
+  const [lastPublication, setLastPublication] = useState(
+    post.last_publication_date
+  );
   const router = useRouter();
 
   if (router.isFallback) {
@@ -79,6 +84,14 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
     }
   );
 
+  const lastPublicationFormatted = format(
+    new Date(lastPublication),
+    'dd MMM yyyy HH:mm',
+    {
+      locale: ptBR,
+    }
+  );
+
   return (
     <>
       <IconContext.Provider value={{ style: { verticalAlign: 'middle' } }}>
@@ -103,6 +116,11 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
               <FiClock size="1.25rem" />
               <span>{readingTime} min</span>
             </div>
+            {lastPublication && (
+              <p className={styles.lastEdition}>
+                *editado em {lastPublicationFormatted}
+              </p>
+            )}
             <div className={styles.content}>
               {post.data.content.map(({ heading, body }) => (
                 <div key={heading}>
@@ -153,6 +171,7 @@ export const getStaticProps: GetStaticProps = async ({
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
+    last_publication_date: response.last_publication_date,
     data: {
       title: response.data.title,
       subtitle: response.data.subtitle,
@@ -168,6 +187,8 @@ export const getStaticProps: GetStaticProps = async ({
       }),
     },
   };
+
+  console.log(post);
 
   return {
     props: {
