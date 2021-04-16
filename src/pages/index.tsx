@@ -1,16 +1,18 @@
 import { GetStaticProps } from 'next';
+import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import Prismic from '@prismicio/client';
 import { format } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
-import { RichText } from 'prismic-dom';
+
 import { AiOutlineCalendar } from 'react-icons/ai';
 import { BsPerson } from 'react-icons/bs';
-
-import { useState } from 'react';
 import { IconContext } from 'react-icons/lib';
+
+import Prismic from '@prismicio/client';
 import { getPrismicClient } from '../services/prismic';
+
+import { ExitPreviewBtn } from '../components/ExitPreviewBtn';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
@@ -33,9 +35,13 @@ interface PostPagination {
 
 interface HomeProps {
   postsPagination: PostPagination;
+  preview: boolean;
 }
 
-export default function Home({ postsPagination }: HomeProps) {
+export default function Home({
+  postsPagination,
+  preview,
+}: HomeProps): JSX.Element {
   const [posts, setPosts] = useState<Post[]>(postsPagination.results);
   const [nextPage, setNextPage] = useState(postsPagination.next_page);
 
@@ -69,6 +75,8 @@ export default function Home({ postsPagination }: HomeProps) {
           <title>Home | spacetraveling</title>
         </Head>
         <Header />
+        {preview && <ExitPreviewBtn />}
+
         <main className={commonStyles.container}>
           <div className={`${styles.posts} ${commonStyles.postsContainer}`}>
             {posts.map(post => (
@@ -103,7 +111,10 @@ export default function Home({ postsPagination }: HomeProps) {
   );
 }
 
-export const getStaticProps: GetStaticProps = async () => {
+export const getStaticProps: GetStaticProps<HomeProps> = async ({
+  preview = false,
+  previewData,
+}) => {
   const prismic = getPrismicClient();
 
   const postResponse = await prismic.query(
@@ -111,7 +122,7 @@ export const getStaticProps: GetStaticProps = async () => {
     {
       fetch: ['posts.title', 'posts.subtitle', 'posts.author'],
       pageSize: 1,
-      page: 1,
+      ref: previewData?.ref ?? null,
     }
   );
 
@@ -135,6 +146,7 @@ export const getStaticProps: GetStaticProps = async () => {
         results: posts,
         next_page: nextPage,
       },
+      preview,
     },
   };
 };

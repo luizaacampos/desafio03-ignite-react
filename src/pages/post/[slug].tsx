@@ -16,6 +16,7 @@ import Header from '../../components/Header';
 
 import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
+import { ExitPreviewBtn } from '../../components/ExitPreviewBtn';
 
 interface Post {
   first_publication_date: string | null;
@@ -36,9 +37,10 @@ interface Post {
 
 interface PostProps {
   post: Post;
+  preview: boolean;
 }
 
-export default function Post({ post }: PostProps): JSX.Element {
+export default function Post({ post, preview }: PostProps): JSX.Element {
   const router = useRouter();
 
   if (router.isFallback) {
@@ -89,6 +91,7 @@ export default function Post({ post }: PostProps): JSX.Element {
           src={post.data.banner.url}
           alt="banner"
         />
+        {preview && <ExitPreviewBtn />}
         <div className={commonStyles.container}>
           <article className={`${styles.post} ${commonStyles.postsContainer}`}>
             <h1>{post.data.title}</h1>
@@ -138,7 +141,10 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => {
+export const getStaticProps: GetStaticProps = async ({
+  params,
+  preview = false,
+}) => {
   const { slug } = params;
 
   const prismic = getPrismicClient();
@@ -166,6 +172,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   return {
     props: {
       post,
+      preview,
     },
     revalidate: 60 * 30, // 30 minutos
   };
