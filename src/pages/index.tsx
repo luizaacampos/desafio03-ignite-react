@@ -76,7 +76,6 @@ export default function Home({
         </Head>
         <Header />
         {preview && <ExitPreviewBtn />}
-
         <main className={commonStyles.container}>
           <div className={`${styles.posts} ${commonStyles.postsContainer}`}>
             {posts.map(post => (
