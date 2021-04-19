@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Head from 'next/head';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
@@ -40,9 +41,16 @@ interface Post {
 interface PostProps {
   post: Post;
   preview: boolean;
+  prevPost: Post;
+  nextPost: Post;
 }
 
-export default function Post({ post, preview }: PostProps): JSX.Element {
+export default function Post({
+  post,
+  preview,
+  prevPost,
+  nextPost,
+}: PostProps): JSX.Element {
   const [lastPublication, setLastPublication] = useState(
     post.last_publication_date
   );
@@ -132,6 +140,53 @@ export default function Post({ post, preview }: PostProps): JSX.Element {
               ))}
             </div>
           </article>
+
+          {prevPost ? (
+            <div className={styles.neighborPosts}>
+              <Link href={`/post/${prevPost?.uid}`}>
+                <a>
+                  <div className={styles.neighborPrevPost}>
+                    <h3 className={styles.neighborPostName}>
+                      {prevPost?.data.title}
+                    </h3>
+                    <h3 className={styles.neighborPostIndicator}>
+                      Post anterior
+                    </h3>
+                  </div>
+                </a>
+              </Link>
+
+              {nextPost && (
+                <Link href={`/post/${nextPost?.uid}`}>
+                  <a>
+                    <div className={styles.neighborNextPost}>
+                      <h3 className={styles.neighborPostName}>
+                        {nextPost?.data.title}
+                      </h3>
+                      <h3 className={styles.neighborPostIndicator}>
+                        Próximo post
+                      </h3>
+                    </div>
+                  </a>
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className={styles.onlyNext}>
+              <Link href={`/post/${nextPost?.uid}`}>
+                <a>
+                  <div className={styles.neighborNextPost}>
+                    <h3 className={styles.neighborPostName}>
+                      {nextPost?.data.title}
+                    </h3>
+                    <h3 className={styles.neighborPostIndicator}>
+                      Próximo post
+                    </h3>
+                  </div>
+                </a>
+              </Link>
+            </div>
+          )}
         </div>
         <div id="inject-comments-for-uterances" />
       </IconContext.Provider>
@@ -168,6 +223,27 @@ export const getStaticProps: GetStaticProps = async ({
   const prismic = getPrismicClient();
   const response = await prismic.getByUID('posts', String(slug), {});
 
+  const prevResponse = await prismic.query(
+    Prismic.predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
+      after: response?.id,
+      orderings: '[document.first_publication_date]',
+    }
+  );
+
+  const nextResponse = await prismic.query(
+    Prismic.predicates.at('document.type', 'posts'),
+    {
+      pageSize: 1,
+      after: response?.id,
+      orderings: '[document.first_publication_date desc]',
+    }
+  );
+
+  const prevPost = prevResponse?.results[0] || null;
+  const nextPost = nextResponse?.results[0] || null;
+
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
@@ -188,12 +264,12 @@ export const getStaticProps: GetStaticProps = async ({
     },
   };
 
-  console.log(post);
-
   return {
     props: {
       post,
       preview,
+      prevPost,
+      nextPost,
     },
     revalidate: 60 * 30, // 30 minutos
   };
