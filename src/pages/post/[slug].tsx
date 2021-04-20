@@ -94,7 +94,7 @@ export default function Post({
 
   const lastPublicationFormatted = format(
     new Date(lastPublication),
-    'dd MMM yyyy HH:mm',
+    "dd MMM yyyy, 'às' HH:mm",
     {
       locale: ptBR,
     }
